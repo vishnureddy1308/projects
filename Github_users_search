@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GitHub User Finder</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Segoe UI, sans-serif;
+}
+
+/* Background */
+
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  color:white;
+  padding:30px;
+}
+
+/* Container */
+
+.container{
+  width:100%;
+  max-width:900px;
+  background:rgba(255,255,255,0.1);
+  padding:25px;
+  border-radius:15px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+  animation:fade 1s ease;
+}
+
+/* Header */
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* Search Box */
+
+.search-box{
+  display:flex;
+  gap:10px;
+  margin-bottom:25px;
+}
+
+input{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  outline:none;
+}
+
+input:focus{
+  box-shadow:0 0 8px #00c6ff;
+}
+
+button{
+  padding:12px 20px;
+  border:none;
+  border-radius:8px;
+  background:#00c6ff;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#009fe3;
+  transform:scale(1.05);
+}
+
+/* Result Grid */
+
+#results{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+}
+
+/* Card */
+
+.card{
+  background:rgba(0,0,0,0.4);
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  opacity:0;
+  transform:translateY(20px);
+  animation:show 0.6s forwards;
+  transition:0.3s;
+}
+
+.card:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 15px rgba(0,198,255,0.5);
+}
+
+/* Avatar */
+
+.card img{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  border:3px solid #00c6ff;
+  margin-bottom:10px;
+}
+
+/* Name */
+
+.card h3{
+  margin:5px 0;
+}
+
+/* Username */
+
+.card p{
+  font-size:13px;
+  color:#00c6ff;
+}
+
+/* Profile Link */
+
+.card a{
+  display:inline-block;
+  margin-top:10px;
+  text-decoration:none;
+  color:black;
+  background:#00c6ff;
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:13px;
+  transition:0.3s;
+}
+
+.card a:hover{
+  background:#009fe3;
+}
+
+/* Error */
+
+#error{
+  text-align:center;
+  margin-top:20px;
+  color:#ff6b6b;
+  display:none;
+}
+
+/* Animations */
+
+@keyframes show{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes fade{
+  from{
+    opacity:0;
+    transform:scale(0.9);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+  <h1>GitHub User Finder</h1>
+
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search GitHub users...">
+    <button onclick="searchUsers()">Search</button>
+  </div>
+
+  <p id="error">No users found!</p>
+
+  <div id="results"></div>
+
+</div>
+
+
+<script>
+
+const input = document.getElementById("search");
+const results = document.getElementById("results");
+const error = document.getElementById("error");
+
+/* Search Function */
+
+async function searchUsers(){
+
+  const query = input.value.trim();
+
+  if(query === "") return;
+
+  results.innerHTML = "";
+  error.style.display = "none";
+
+  try{
+
+    const res = await fetch(
+      `https://api.github.com/search/users?q=${query}&per_page=20`
+    );
+
+    const data = await res.json();
+
+    if(data.items.length === 0){
+      error.style.display = "block";
+      return;
+    }
+
+    displayUsers(data.items);
+
+  }
+  catch(err){
+    error.style.display = "block";
+  }
+
+}
+
+/* Display Cards */
+
+function displayUsers(users){
+
+  users.forEach((user,index)=>{
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.animationDelay = `${index * 0.05}s`;
+
+    card.innerHTML = `
+      <img src="${user.avatar_url}">
+      <h3>${user.login}</h3>
+      <p>ID: ${user.id}</p>
+      <a href="${user.html_url}" target="_blank">
+        View Profile
+      </a>
+    `;
+
+    results.appendChild(card);
+
+  });
+
+}
+
+/* Enter Key Support */
+
+input.addEventListener("keyup",e=>{
+  if(e.key==="Enter"){
+    searchUsers();
+  }
+});
+
+</script>
+
+</body>
+</html>
